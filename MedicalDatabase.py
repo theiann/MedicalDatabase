@@ -9,6 +9,12 @@ f = open("password.txt", "r")
 p = f.read()
 try:
     cnx = mysql.connector.connect(user='root' , password=p, host='127.0.0.1')
+    cursor = cnx.cursor()
+    cursor.execute('USE MedicalDatabase')
+    command = 0
+    while(command != "EXIT"):
+        print("Input your next command. (Type EXIT to exit)")
+        command = input()
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
     print("Something is wrong with your user name or password")

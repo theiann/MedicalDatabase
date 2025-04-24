@@ -1,5 +1,5 @@
-CREATE SCHEMA cs3380_project;
-USE cs3380_project;
+CREATE SCHEMA MedicalDatabase;
+USE MedicalDatabase;
 
 CREATE TABLE INSURANCE (
 	I_id int,
