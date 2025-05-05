@@ -4,10 +4,36 @@ from mysql.connector import errorcode
 
 
 
-def prescription():
-   print("Would you like to VIEW, ADD, or RENEW prescriptions?")
+
+
+
+def prescription(cursor):
+   print("Would you like to VIEW, ADD, or RENEW prescriptions? (Type BACK to return)")
    c = "blank"
-   c = input()
+
+   command = "blank"
+   while(command.upper()!= "EXIT"):
+    c = input()
+    match c.upper():
+      case "VIEW":
+        try:
+          cursor.execute("""
+                     SELECT MEDICATIONS.Medication_name, PATIENT.P_Name
+                     FROM PATIENT
+                     CROSS JOIN MEDICATIONS
+                     WHERE MEDICATIONS.P_id = PATIENT.P_id
+                     """)
+          myresult = cursor.fetchall()
+          for x in myresult:
+            print(x)
+        except mysql.connector.Error as err:
+          print(err)
+        
+      case "BACK":
+         return
+    
+      
+      
    
 
 # Password for the SQL server is stored on a .txt file in the same folder as the python script
@@ -28,9 +54,9 @@ try:
               "\"HELP\" - Lists all available commands.\n" \
               "\"PRESCRIPTION\" or \"P\" - Provides options to view, add, or renew prescriptions for patients.")
             case "P":
-              prescription()
+              prescription(cursor)
             case "PRESCRIPTION":
-              prescription()
+              prescription(cursor)
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
     print("Something is wrong with your user name or password")
