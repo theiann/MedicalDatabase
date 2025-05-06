@@ -8,9 +8,42 @@ import re
 
 
 
+def renew_prescription(cnx):
+  cursor = cnx.cursor()
+  print("What is the patient's name?")
+  command = "blank"
+  command = input()
+  try:
+    cursor.execute("SELECT PATIENT.P_id FROM PATIENT WHERE PATIENT.P_Name = '"+ command + "'")
+    id = re.sub("[^0-9]","",str(cursor.fetchone()))
+    if (len(id) == 0):
+      print("Patient not found.")
+      return
+  except mysql.connector.Error as err:
+    print(err)
+    return
+  print("Which prescription is being renewed?")
+  command = input()
+  try:
+    cursor.execute("SELECT MEDICATIONS.Medication_name FROM MEDICATIONS WHERE MEDICATIONS.P_id = "+ id + " AND MEDICATIONS.Medication_name = '" + command +"';")
+    name = re.sub('[^a-zA-Z0-9]', '', str(cursor.fetchone()))
+    if (name == "None"):
+      print("Prescription not found.")
+      return
+  except mysql.connector.Error as err:
+    print(err)
+    return
 
 
-def add_prescription(cursor):
+
+
+
+
+
+
+
+def add_prescription(cnx):
+  cursor = cnx.cursor()
   print("Who is the prescription for?")
   command = "blank"
   command = input()
@@ -44,10 +77,10 @@ def add_prescription(cursor):
       cursor.execute("INSERT INTO MEDICATIONS VALUES("+ id +", '"+ medicine_name +"', '"+ frequency +"', '"+ dosage +"');")
       #print("Ran command : INSERT INTO MEDICATIONS VALUES("+ id +", '"+ medicine_name +"', '"+ frequency +"', '"+ dosage +"');")
       print("Medication successfully prescribed to patient named " + command)
-      cursor.commit()
+      cnx.commit()
     except mysql.connector.Error as err:
       print(err)
-      prescription(cursor)
+      prescription(cnx)
       return
   else:
     print("Action terminated.")
@@ -61,7 +94,8 @@ def add_prescription(cursor):
 
 
 
-def prescription(cursor):
+def prescription(cnx):
+   cursor = cnx.cursor()
    c = "blank"
 
    command = "blank"
@@ -83,7 +117,9 @@ def prescription(cursor):
         except mysql.connector.Error as err:
           print(err)
       case "ADD":
-        add_prescription(cursor)
+        add_prescription(cnx)
+      case "RENEW":
+        renew_prescription(cnx)
       case "BACK":
          return
       case "EXIT":
@@ -111,9 +147,9 @@ try:
               "\"HELP\" - Lists all available commands.\n" \
               "\"PRESCRIPTION\" or \"P\" - Provides options to view, add, or renew prescriptions for patients.")
             case "P":
-              prescription(cursor)
+              prescription(cnx)
             case "PRESCRIPTION":
-              prescription(cursor)
+              prescription(cnx)
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
     print("Something is wrong with your user name or password")
@@ -122,5 +158,6 @@ except mysql.connector.Error as err:
   else:
     print(err)
 else:
+    cnx.commit()
     cnx.close()
 f.close()
