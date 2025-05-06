@@ -25,6 +25,7 @@ CREATE TABLE MEDICATIONS (
     Medication_name varchar(255) NOT NULL,
     Frequency varchar(255) NOT NULL,
     Dosage varchar(255) NOT NULL,
+    PRIMARY KEY (Medication_name, P_id),
     FOREIGN KEY (P_id) REFERENCES PATIENT(P_id)
 );
 
@@ -33,6 +34,7 @@ CREATE TABLE SURGERY_HISTORY (
     Surgery_type varchar(255) NOT NULL,
     Surgery_date date NOT NULL,
     Doctor_name varchar(255) NOT NULL,
+    PRIMARY KEY (Surgery_type, Surgery_date, Doctor_name),
     FOREIGN KEY (P_id) REFERENCES PATIENT(P_id)
 );
 
@@ -58,6 +60,7 @@ CREATE TABLE OWES (
 CREATE TABLE PATIENT_PHONES (
 	P_id int,
     Phone varchar(20) NOT NULL,
+    PRIMARY KEY (P_id, Phone),
     FOREIGN KEY (P_id) REFERENCES PATIENT(P_id)
 );
     
