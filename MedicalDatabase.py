@@ -26,13 +26,28 @@ def renew_prescription(cnx):
   command = input()
   try:
     cursor.execute("SELECT MEDICATIONS.Medication_name FROM MEDICATIONS WHERE MEDICATIONS.P_id = "+ id + " AND MEDICATIONS.Medication_name = '" + command +"';")
-    name = re.sub('[^a-zA-Z0-9]', '', str(cursor.fetchone()))
-    if (name == "None"):
+    medicationName = re.sub(r"[^a-zA-Z0-9\s]", '', str(cursor.fetchone()))
+    print(medicationName)
+    if (medicationName == "None"):
       print("Prescription not found.")
       return
   except mysql.connector.Error as err:
     print(err)
     return
+  print("What is the new dosage?")
+  dosage = input()
+  print("What is the new frequency the medicine should be taken?")
+  frequency = input()
+  
+  try:
+    cursor.execute("DELETE FROM MEDICATIONS WHERE MEDICATIONS.P_id = "+id+" AND MEDICATIONS.Medication_name = '"+ medicationName +"';")
+    cursor.execute("INSERT INTO MEDICATIONS VALUES("+ id +", '"+ medicationName +"', '"+ frequency +"', '"+ dosage +"');")
+    cnx.commit()
+    print(medicationName + " prescription for " + command + " has been renewed.")
+  except mysql.connector.error as err:
+    print(err)
+    return
+
 
 
 
@@ -106,7 +121,7 @@ def prescription(cnx):
       case "VIEW":
         try:
           cursor.execute("""
-                     SELECT MEDICATIONS.Medication_name, PATIENT.P_Name
+                     SELECT MEDICATIONS.Medication_name, PATIENT.P_Name, MEDICATIONS.Frequency, MEDICATIONS.Dosage
                      FROM PATIENT
                      CROSS JOIN MEDICATIONS
                      WHERE MEDICATIONS.P_id = PATIENT.P_id
