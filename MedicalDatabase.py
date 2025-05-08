@@ -115,7 +115,7 @@ def prescription(cnx):
 
    command = "blank"
    while(command.upper()!= "EXIT"):
-    print("Would you like to VIEW, ADD, or RENEW prescriptions? (Type BACK to return)")
+    print("Would you like to VIEW, ADD, or RENEW prescriptions? (Type BACK or EXIT to return)")
     c = input()
     match c.upper():
       case "VIEW":
@@ -139,10 +139,37 @@ def prescription(cnx):
          return
       case "EXIT":
         return
-    
+
+
+
+def billing(cnx):
+  cursor = cnx.cursor()
+  c = "blank"
+  while(c.upper != "EXIT"):
+    print("Would you like to ADD or VIEW bills? (Type BACK or EXIT to return)")
+    c = input()
+    match c.upper():
+      case "VIEW":
+        try:
+          cursor.execute("""
+                     SELECT BILLING.B_id, PATIENT.P_Name, INSURANCE.Name, BILLING.Total_owed, BILLING.Amount_paid
+                     FROM BILLING
+                     CROSS JOIN PATIENT
+                     CROSS JOIN INSURANCE
+                     WHERE BILLING.P_id = PATIENT.P_id AND BILLING.I_id = INSURANCE.I_id
+                     """)
+          myresult = cursor.fetchall()
+          print("(Bill ID, Patient Name, Insurance Provider, Total Owed, $ Paid)")
+          for x in myresult:
+            print(x)
+        except mysql.connector.Error as err:
+          print(err)
+      case "EXIT":
+        return
+      case "BACK":
+        return
       
-      
-   
+
 
 # Password for the SQL server is stored on a .txt file in the same folder as the python script
 # No, this is not secure, but I'd rather not put any sensitive information in my source code.
@@ -165,6 +192,8 @@ try:
               prescription(cnx)
             case "PRESCRIPTION":
               prescription(cnx)
+            case "BILLING":
+              billing(cnx)
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
     print("Something is wrong with your user name or password")
