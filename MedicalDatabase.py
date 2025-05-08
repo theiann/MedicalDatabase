@@ -243,6 +243,10 @@ try:
               prescription(cnx)
             case "BILLING":
               billing(cnx)
+            case "BILL":
+              billing(cnx)
+            case "B":
+              billing(cnx)
 except mysql.connector.Error as err:
   if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
     print("Something is wrong with your user name or password")
