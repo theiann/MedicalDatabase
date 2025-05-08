@@ -41,13 +41,11 @@ CREATE TABLE SURGERY_HISTORY (
 CREATE TABLE BILLING (
 	B_id int,
 	P_id int,
-    I_id int,
     Due_date date NOT NULL,
     Total_owed float NOT NULL,
     Amount_paid float,
     PRIMARY KEY (B_id),
-    FOREIGN KEY (P_id) REFERENCES PATIENT(P_id),
-    FOREIGN KEY (I_id) REFERENCES INSURANCE(I_id)
+    FOREIGN KEY (P_id) REFERENCES PATIENT(P_id)
 );
 
 CREATE TABLE OWES (

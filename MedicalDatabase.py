@@ -7,7 +7,7 @@ import re
 
 
 
-
+# Function for renewing a patient's prescription.
 def renew_prescription(cnx):
   cursor = cnx.cursor()
   print("What is the patient's name?")
@@ -56,7 +56,7 @@ def renew_prescription(cnx):
 
 
 
-
+# Function for adding a prescription.
 def add_prescription(cnx):
   cursor = cnx.cursor()
   print("Who is the prescription for?")
@@ -90,7 +90,6 @@ def add_prescription(cnx):
   if(confirmed.upper() == "YES"):
     try:
       cursor.execute("INSERT INTO MEDICATIONS VALUES("+ id +", '"+ medicine_name +"', '"+ frequency +"', '"+ dosage +"');")
-      #print("Ran command : INSERT INTO MEDICATIONS VALUES("+ id +", '"+ medicine_name +"', '"+ frequency +"', '"+ dosage +"');")
       print("Medication successfully prescribed to patient named " + command)
       cnx.commit()
     except mysql.connector.Error as err:
@@ -108,7 +107,7 @@ def add_prescription(cnx):
 
 
 
-
+# Function that opens the prescription command menu.
 def prescription(cnx):
    cursor = cnx.cursor()
    c = "blank"
@@ -142,6 +141,7 @@ def prescription(cnx):
 
 
 
+# Function that opens the billing command menu.
 def billing(cnx):
   cursor = cnx.cursor()
   c = "blank"
@@ -152,18 +152,19 @@ def billing(cnx):
       case "VIEW":
         try:
           cursor.execute("""
-                     SELECT BILLING.B_id, PATIENT.P_Name, INSURANCE.Name, BILLING.Total_owed, BILLING.Amount_paid
+                     SELECT BILLING.B_id, PATIENT.P_Name, BILLING.Due_date, BILLING.Total_owed, BILLING.Amount_paid
                      FROM BILLING
                      CROSS JOIN PATIENT
-                     CROSS JOIN INSURANCE
-                     WHERE BILLING.P_id = PATIENT.P_id AND BILLING.I_id = INSURANCE.I_id
+                     WHERE BILLING.P_id = PATIENT.P_id
                      """)
           myresult = cursor.fetchall()
-          print("(Bill ID, Patient Name, Insurance Provider, Total Owed, $ Paid)")
+          print("(Bill ID, Patient Name, Due Date, Total Owed, $ Paid)")
           for x in myresult:
             print(x)
         except mysql.connector.Error as err:
           print(err)
+      case "ADD":
+        add_bill(cnx)
       case "EXIT":
         return
       case "BACK":
@@ -171,7 +172,54 @@ def billing(cnx):
       
 
 
-# Password for the SQL server is stored on a .txt file in the same folder as the python script
+# Function for adding a bill.
+def add_bill(cnx):
+  cursor = cnx.cursor()
+  print("Enter the patient's ID")
+  command = input()
+  try:
+    cursor.execute("SELECT PATIENT.P_id FROM PATIENT WHERE PATIENT.P_id = "+ command+";")
+    id = re.sub("[^0-9]","",str(cursor.fetchone()))
+    if (len(id) == 0):
+      print("Patient not found.")
+      return
+  except mysql.connector.Error as err:
+    print(err)
+    return
+  
+  print("Enter a new bill ID. (6 digits)")
+  bill_id = input()
+  print("Enter the due date. (Year-Month-Day XXXX-XX-XX)")
+  date = input()
+  print("Enter the amount of money owed")
+  owed = input()
+
+  print("Are you sure this is the correct information? (YES or NO)\n" \
+        "Patient ID: " + id + "\n" \
+        "New Bill ID: " + bill_id + "\n" \
+        "Due Date: " + date + "\n" \
+        "Amount Owed: " + owed)
+  confirmation = input()
+  match confirmation.upper():
+    case "YES":
+      try:
+        cursor.execute("INSERT INTO BILLING VALUES("+ bill_id +", "+ id +", '"+ date +"', "+ owed + ", 0.00);")
+        cursor.execute("INSERT INTO OWES VALUES("+ id + ", " + bill_id + ");")
+        print("Bill successfully added.")
+        cnx.commit()
+      except mysql.connector.Error as err:
+        print(err)
+        return
+    case "NO" :
+      print("Action terminated")
+      return
+  return
+
+
+
+
+
+# Password for the SQL server is stored on a .txt file in the same folder as the python script.
 # No, this is not secure, but I'd rather not put any sensitive information in my source code.
 f = open("password.txt", "r")
 p = f.read()
@@ -187,7 +235,8 @@ try:
             case "HELP":
               print("\"EXIT\" - Exits the application.\n" \
               "\"HELP\" - Lists all available commands.\n" \
-              "\"PRESCRIPTION\" or \"P\" - Provides options to view, add, or renew prescriptions for patients.")
+              "\"PRESCRIPTION\" or \"P\" - Provides options to view, add, or renew prescriptions for patients.\n" \
+              "\"BILLING\" or \"BILL\" or \"B\" - Provides options to view or add bills.")
             case "P":
               prescription(cnx)
             case "PRESCRIPTION":
